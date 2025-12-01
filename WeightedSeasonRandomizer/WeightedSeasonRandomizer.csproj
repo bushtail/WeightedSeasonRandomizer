@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <RootNamespace>WeightedSeasonRandomizer</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <OutputType>Library</OutputType>
+        <Version>0.0.1</Version>
+        <!-- The two lines below will set the output path for the binaries -->
+        <OutputPath>bin\$(Configuration)\$(ProjectName)\$(AssemblyName)\</OutputPath>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <LangVersion>latestmajor</LangVersion>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="SPTarkov.Common" Version="4.0.7" />
+        <PackageReference Include="SPTarkov.DI" Version="4.0.7" />
+        <PackageReference Include="SPTarkov.Server.Core" Version="4.0.7" />
+        <PackageReference Include="SPTarkov.Reflection" Version="4.0.7" />
+    </ItemGroup>
+</Project>
