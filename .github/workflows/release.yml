@@ -52,18 +52,18 @@ jobs:
           if [ -z "$OUTDIR" ]; then
             echo "No Release output folder found" && exit 1
           fi
-          INNER=$(find "$OUTDIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+          INNER=$(find "$OUTDIR" -mindepth 1 -maxdepth 1 -type d -name "$MOD_NAME" | head -n 1)
           if [ -z "$INNER" ]; then
-            echo "No inner folder found in $OUTDIR" && exit 1
+            echo "No inner folder named $MOD_NAME found in $OUTDIR" && exit 1
           fi
           TARGET="package/SPT/user/mods/$AUTHOR-$MOD_NAME"
           echo "Packaging mod into $TARGET"
           mkdir -p "$TARGET"
           rsync -av \
-            --exclude "*$MOD_NAME.deps.json" \
-            --exclude "*$MOD_NAME.pdb" \
-            --exclude "*$MOD_NAME.staticwebassets.endpoints.json" \
-            "$OUTDIR"/ "$TARGET/"
+          --exclude "*$MOD_NAME.deps.json" \
+          --exclude "*$MOD_NAME.pdb" \
+          --exclude "*$MOD_NAME.staticwebassets.endpoints.json" \
+          "$INNER"/ "$TARGET/"
           
       - name: Optionally include bundles folder
         run: |
