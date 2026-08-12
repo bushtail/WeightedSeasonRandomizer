@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 using SPTarkov.Reflection.Patching;
 using SPTarkov.Server.Core.Callbacks;
 
-namespace WeightedSeasonRandomizer;
+namespace WeightedSeasonRandomizer.Patches;
 
 public class GetLocalWeather : AbstractPatch
 {

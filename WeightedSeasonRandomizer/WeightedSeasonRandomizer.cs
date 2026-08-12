@@ -2,42 +2,46 @@
 
 using System.Reflection;
 using System.Text.Json;
+using JetBrains.Annotations;
+using SPTarkov.Common.Models.Logging;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Helpers.Server;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Servers;
+using WeightedSeasonRandomizer.Patches;
 
 namespace WeightedSeasonRandomizer;
 
-[Injectable(TypePriority = OnLoadOrder.PostSptModLoader)]
-public class WeightedSeasonRandomizer(ModHelper modHelper, ConfigServer configServer, ISptLogger<WeightedSeasonRandomizer> logger) : IOnLoad
+[Injectable(TypePriority = OnLoadOrder.PostLoad + 1), UsedImplicitly]
+public class WeightedSeasonRandomizer(ModHelper modHelper, WeatherConfig weatherConfig, ISptLogger<WeightedSeasonRandomizer> logger) : IOnLoad
 {
-    private static readonly Random _random = new();
-    private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+    private static readonly Random Random = new();
+    private static readonly JsonSerializerOptions JSONOptions = new() { WriteIndented = true };
     private static ISptLogger<WeightedSeasonRandomizer>? _logger;
-    private static WSRConfig? Config;
-    private static WeatherConfig? WeatherCfg;
+    private static WsrConfig? _config;
+    private static WeatherConfig? _weatherCfg;
     
-    public Task OnLoad()
+    public Task OnLoadAsync(CancellationToken cancellationToken)
     {
         _logger = logger;
-        WeatherCfg = configServer.GetConfig<WeatherConfig>();
-        if (WeatherCfg == null) throw new NullReferenceException(nameof(WeatherConfig));
+        _weatherCfg = weatherConfig;
+        
         var pathToMod = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
         var configPath = Path.Combine(pathToMod, "config.json");
         
         if (!File.Exists(configPath))
         {
-            Config = new WSRConfig();
-            var json = JsonSerializer.Serialize(Config, _jsonOptions);
+            _config = new WsrConfig();
+            var json = JsonSerializer.Serialize(_config, JSONOptions);
             File.WriteAllText(configPath, json);
         }
         else
         {
-            Config = modHelper.GetJsonDataFromFile<WSRConfig>(pathToMod, configPath);
+            _config = modHelper.GetJsonDataFromFile<WsrConfig>(pathToMod, configPath);
         }
         new GetLocalWeather().Enable();
         PushNewSeason();
@@ -46,19 +50,19 @@ public class WeightedSeasonRandomizer(ModHelper modHelper, ConfigServer configSe
 
     public static void PushNewSeason()
     {
-        if (WeatherCfg != null) WeatherCfg.OverrideSeason = SelectNewSeason();
+        _weatherCfg?.OverrideSeason = SelectNewSeason();
     }
     
     private static Season SelectNewSeason()
     {
         if (_logger == null) throw new NullReferenceException(nameof(_logger));
-        if (Config == null) return Season.SUMMER;
+        if (_config == null) return Season.SUMMER;
 
-        var totalWeight = Config.AsEnumerable().Sum(weight => weight.Value);
+        var totalWeight = _config.AsEnumerable().Sum(weight => weight.Value);
 
-        var roll = _random.Next(totalWeight);
+        var roll = Random.Next(totalWeight);
 
-        foreach (var kvp in Config.AsEnumerable())
+        foreach (var kvp in _config.AsEnumerable())
         {
             if (roll < kvp.Value)
             {

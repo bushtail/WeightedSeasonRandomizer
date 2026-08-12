@@ -2,15 +2,15 @@
 
 namespace WeightedSeasonRandomizer;
 
-public class WSRConfig
+public class WsrConfig
 {
-    public int Winter { get; set; } = 5;
-    public int EarlySpring { get; set; } = 10;
-    public int Spring { get; set; } = 15;
-    public int Storm { get; set; } = 10;
-    public int Summer { get; set; } = 30;
-    public int Autumn { get; set; } = 20;
-    public int LateAutumn { get; set; } = 10;
+    private int Winter { get; set; } = 5;
+    private int EarlySpring { get; set; } = 10;
+    private int Spring { get; set; } = 15;
+    private int Storm { get; set; } = 10;
+    private int Summer { get; set; } = 30;
+    private int Autumn { get; set; } = 20;
+    private int LateAutumn { get; set; } = 10;
     
 
     public IEnumerable<KeyValuePair<Season, int>> AsEnumerable()
