@@ -1,17 +1,12 @@
-﻿#pragma warning disable CS0618 // Type or member is obsolete
-
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.Json;
 using JetBrains.Annotations;
 using SPTarkov.Common.Models.Logging;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Helpers.Server;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Spt.Config;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Servers;
 using WeightedSeasonRandomizer.Patches;
 
 namespace WeightedSeasonRandomizer;
@@ -31,18 +26,15 @@ public class WeightedSeasonRandomizer(ModHelper modHelper, WeatherConfig weather
         _weatherCfg = weatherConfig;
         
         var pathToMod = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
-        var configPath = Path.Combine(pathToMod, "config.json");
+        var configPath = Path.Combine(pathToMod, "config.jsonc");
         
         if (!File.Exists(configPath))
         {
-            _config = new WsrConfig();
-            var json = JsonSerializer.Serialize(_config, JSONOptions);
-            File.WriteAllText(configPath, json);
+            File.WriteAllText(configPath, JsonSerializer.Serialize(new WsrConfig(), JSONOptions));
         }
-        else
-        {
-            _config = modHelper.GetJsonDataFromFile<WsrConfig>(pathToMod, configPath);
-        }
+
+        _config = modHelper.GetJsonDataFromFile<WsrConfig>(pathToMod, configPath);
+        
         new GetLocalWeather().Enable();
         PushNewSeason();
         return Task.CompletedTask;
@@ -56,7 +48,12 @@ public class WeightedSeasonRandomizer(ModHelper modHelper, WeatherConfig weather
     private static Season SelectNewSeason()
     {
         if (_logger == null) throw new NullReferenceException(nameof(_logger));
-        if (_config == null) return Season.SUMMER;
+
+        if (_config == null)
+        {
+            _config = new WsrConfig();
+            return Season.SUMMER;
+        }
 
         var totalWeight = _config.AsEnumerable().Sum(weight => weight.Value);
 

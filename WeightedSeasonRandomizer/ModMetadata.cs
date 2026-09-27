@@ -12,7 +12,7 @@ public record ModMetadata : IModMetadata
     public string Name { get; init; } = "WeightedSeasonRandomizer";
     public string Author { get; init; } = "bushtail";
     public List<string>? Contributors { get; init; }
-    public Version Version { get; init; } = new(typeof(ModMetadata).Assembly.GetName().Version?.ToString(3));
+    public Version Version { get; init; } = new(typeof(ModMetadata).Assembly.GetName().Version!.ToString(3));
     public Range SptVersion { get; init; } = new("~4.1.0");
     public bool HasPrepatcher { get; init; }
     public List<string>? Incompatibilities { get; init; }
