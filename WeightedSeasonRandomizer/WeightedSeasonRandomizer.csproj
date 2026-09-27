@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <RootNamespace>WeightedSeasonRandomizer</RootNamespace>
@@ -6,14 +6,27 @@
         <Nullable>enable</Nullable>
         <OutputType>Library</OutputType>
         <Version>2.0.1</Version>
-        <OutputPath>bin\$(Configuration)\$(ProjectName)\$(AssemblyName)\</OutputPath>
+        <OutputPath>bin/$(Configuration)/$(AssemblyName)/</OutputPath>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
     <ItemGroup>
-      <PackageReference Include="WTT-ServerCommonLib" Version="3.0.3" />
+        <PackageReference Include="WTT-ServerCommonLib" Version="3.0.3" />
     </ItemGroup>
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="@echo off&#xA;setlocal enabledelayedexpansion&#xA;&#xA;REM Set variables&#xA;set MODNAME=$(TargetName)&#xA;set DLLPATH=$(TargetDir)$(TargetName).dll&#xA;set OUTDIR=..\..\..\SPT_Runtime\user\mods\%25MODNAME%25&#xA;set RESOURCESDIR=$(ProjectDir)Resources&#xA;set BUILDOUTDIR=..\Build\SPT_Runtime\user\mods\%25MODNAME%25&#xA;&#xA;REM Create output directories if they don't exist&#xA;if not exist &quot;%25OUTDIR%25&quot; mkdir &quot;%25OUTDIR%25&quot;&#xA;if not exist &quot;%25BUILDOUTDIR%25&quot; mkdir &quot;%25BUILDOUTDIR%25&quot;&#xA;&#xA;REM Clear the output directory (except the dll we're about to copy)&#xA;if exist &quot;%25OUTDIR%25&quot; (&#xA;    for /d %25%25D in (&quot;%25OUTDIR%25\*&quot;) do rmdir /s /q &quot;%25%25D&quot;&#xA;    for %25%25F in (&quot;%25OUTDIR%25\*&quot;) do (&#xA;        if /i not &quot;%25%25~nxF&quot;==&quot;$(TargetName).dll&quot; del /q &quot;%25%25F&quot;&#xA;    )&#xA;)&#xA;&#xA;REM Clear the build output directory completely&#xA;if exist &quot;%25BUILDOUTDIR%25&quot; (&#xA;    for /d %25%25D in (&quot;%25BUILDOUTDIR%25\*&quot;) do rmdir /s /q &quot;%25%25D&quot;&#xA;    for %25%25F in (&quot;%25BUILDOUTDIR%25\*&quot;) do del /q &quot;%25%25F&quot;&#xA;)&#xA;&#xA;REM Copy the DLL file to SPT&#xA;copy /Y &quot;%25DLLPATH%25&quot; &quot;%25OUTDIR%25\&quot; &gt;nul 2&gt;&amp;1&#xA;echo [PostBuild] Copied %25MODNAME%25.dll to %25OUTDIR%25&#xA;&#xA;REM Copy all contents from Resources folder recursively to SPT&#xA;if exist &quot;%25RESOURCESDIR%25&quot; (&#xA;    xcopy &quot;%25RESOURCESDIR%25&quot; &quot;%25OUTDIR%25&quot; /E /I /Y &gt;nul 2&gt;&amp;1&#xA;    echo [PostBuild] Copied Resources to %25OUTDIR%25&#xA;) else (&#xA;    echo [PostBuild] Warning: Resources folder not found at %25RESOURCESDIR%25&#xA;)&#xA;&#xA;REM Copy the DLL file to Build folder&#xA;copy /Y &quot;%25DLLPATH%25&quot; &quot;%25BUILDOUTDIR%25\&quot; &gt;nul 2&gt;&amp;1&#xA;echo [PostBuild] Copied %25MODNAME%25.dll to %25BUILDOUTDIR%25&#xA;&#xA;REM Copy all contents from Resources folder recursively to Build folder&#xA;if exist &quot;%25RESOURCESDIR%25&quot; (&#xA;    xcopy &quot;%25RESOURCESDIR%25&quot; &quot;%25BUILDOUTDIR%25&quot; /E /I /Y &gt;nul 2&gt;&amp;1&#xA;    echo [PostBuild] Copied Resources to %25BUILDOUTDIR%25&#xA;) else (&#xA;    echo [PostBuild] Warning: Resources folder not found at %25RESOURCESDIR%25&#xA;)&#xA;&#xA;echo [PostBuild] Build output: %25OUTDIR%25 and %25BUILDOUTDIR%25&#xA;endlocal&#xA;" />
+    <Target Name="StageMod" AfterTargets="Build">
+        <PropertyGroup>
+            <_BuildModDir>$(MSBuildProjectDirectory)/../Build/SPT_Runtime/user/mods/$(TargetName)</_BuildModDir>
+            <_GameRoot>$(MSBuildProjectDirectory)/../../..</_GameRoot>
+            <_GameModDir>$(_GameRoot)/SPT_Runtime/user/mods/$(TargetName)</_GameModDir>
+        </PropertyGroup>
+        <ItemGroup>
+            <_ModResource Include="$(MSBuildProjectDirectory)/Resources/**/*" />
+        </ItemGroup>
+        <MakeDir Directories="$(_BuildModDir)" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(_BuildModDir)" />
+        <Copy SourceFiles="@(_ModResource)" DestinationFiles="@(_ModResource->'$(_BuildModDir)/%(RecursiveDir)%(Filename)%(Extension)')" Condition="'@(_ModResource)' != ''" />
+        <MakeDir Directories="$(_GameModDir)" Condition="Exists('$(_GameRoot)/SPT_Runtime/user/mods')" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(_GameModDir)" Condition="Exists('$(_GameRoot)/SPT_Runtime/user/mods')" />
+        <Copy SourceFiles="@(_ModResource)" DestinationFiles="@(_ModResource->'$(_GameModDir)/%(RecursiveDir)%(Filename)%(Extension)')" Condition="Exists('$(_GameRoot)/SPT_Runtime/user/mods') and '@(_ModResource)' != ''" />
     </Target>
 </Project>
